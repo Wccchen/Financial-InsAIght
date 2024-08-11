@@ -44,7 +44,7 @@ const Login = ({ isLoggedIn, setIsLoggedIn, setName, setEmail }) => {
         setEmail(email);
 
         toast.success("Logged in successfully!");
-        navigate("/dashboard");
+        navigate("/");
       } else {
         toast.error(response.data.message);
       }

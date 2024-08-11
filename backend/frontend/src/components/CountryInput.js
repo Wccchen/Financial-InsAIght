@@ -3,7 +3,7 @@ const countries = [
     "United States",
     "Japan",
     "Australia",
-    "Canada",
+    "United Kingdom",
     "Taiwan"
   ];
   

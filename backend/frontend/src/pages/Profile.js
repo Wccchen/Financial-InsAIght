@@ -6,7 +6,7 @@ const Profile = ({ isLoggedIn, name, email }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('access');
+    const token = localStorage.getItem('access') || sessionStorage.getItem('access');
     if (!token) {
       navigate("/login");
     }
