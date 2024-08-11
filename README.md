@@ -1,4 +1,4 @@
-﻿
+
 # IT project
 
 ## Overview
@@ -21,7 +21,9 @@ This project is designed for Finance Sentiment Analysis by LLM. It utilizes seve
     
     Copy code
     
-    `git clone https://stgit.dcs.gla.ac.uk/msc-project-for-information-technology/2023/it-project-2840692l/it-projects.git `
+    ```
+    git clone https://stgit.dcs.gla.ac.uk/msc-project-for-information-technology/2023/it-project-2840692l/it-projects.git 
+    ```
     
 2.  **Create a virtual environment**
     
@@ -31,7 +33,9 @@ This project is designed for Finance Sentiment Analysis by LLM. It utilizes seve
     
     Copy code
     
-    `pip install virtualenv` 
+    ```
+    pip install virtualenv
+    ``` 
     
     Then, create and activate a virtual environment:
     
@@ -39,8 +43,10 @@ This project is designed for Finance Sentiment Analysis by LLM. It utilizes seve
     
     Copy code
     
-    ``virtualenv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate` `` 
+    ```
+    virtualenv venv
+    source venv/bin/activate  # On Windows use `venv\Scripts\activate` 
+    ``` 
     
 3.  **Install dependencies**
     
@@ -50,7 +56,9 @@ This project is designed for Finance Sentiment Analysis by LLM. It utilizes seve
     
     Copy code
     
-    `pip install -r requirements.txt` 
+    ```
+    pip install -r requirements.txt
+    ``` 
     
 4.  **Set up the database**
     
@@ -60,7 +68,9 @@ This project is designed for Finance Sentiment Analysis by LLM. It utilizes seve
     
     Copy code
     
-    `python manage.py migrate` 
+    ```
+    python manage.py migrate
+    ``` 
     
 5.  **Run the project**
     
@@ -70,7 +80,9 @@ This project is designed for Finance Sentiment Analysis by LLM. It utilizes seve
     
     Copy code
     
-    `python manage.py runserver` 
+    ```
+    python manage.py runserver
+    ``` 
     
     Your project should now be running on  `http://127.0.0.1:8000/`  (or another port if specified).
     
