@@ -20,12 +20,12 @@ const AppNavBar = (props) => {
     <Navbar fluid>
       <Navbar.Brand href="#">
         <img
-          src="https://media.geeksforgeeks.org/wp-content/uploads/20210224040124/JSBinCollaborativeJavaScriptDebugging6-300x160.png"
+          src= {UserIcon}
           className="mr-3 h-6 sm:h-9"
           alt="Flowbite React Logo"
         />
         <span className="self-center whitespace-nowrap text-3xl font-semibold dark:text-white">
-          GeeksForGeeks
+          Finance Insight
         </span>
       </Navbar.Brand>
       {isLoggedIn && (
@@ -42,7 +42,7 @@ const AppNavBar = (props) => {
               </span>
             </Dropdown.Header>
             <Dropdown.Item>Settings</Dropdown.Item>
-            <Dropdown.Item>Your Orders</Dropdown.Item>
+            <Dropdown.Item>Dashboard</Dropdown.Item>
             <Dropdown.Divider />
             <Dropdown.Item onClick={handleLogout}>Log out</Dropdown.Item>
           </Dropdown>
@@ -50,21 +50,22 @@ const AppNavBar = (props) => {
         </div>
       )}
       <Navbar.Collapse>
-        <Navbar.Link href="/" className="text-lg">
-          Home
-        </Navbar.Link>
-        <Navbar.Link href="#" className="text-lg">
-          About
-        </Navbar.Link>
-        <Navbar.Link href="#" className="text-lg">
-          Services
-        </Navbar.Link>
-        <Navbar.Link href="#" className="text-lg">
-          Pricing
-        </Navbar.Link>
-        <Navbar.Link href="#" className="text-lg">
-          Contact
-        </Navbar.Link>
+        
+        {isLoggedIn && (
+        <>  
+            <Navbar.Link href="/profile" className="text-lg">
+              Dashboard
+            </Navbar.Link><Navbar.Link href="#" className="text-lg">
+              About
+            </Navbar.Link><Navbar.Link href="#" className="text-lg">
+              Analyse
+            </Navbar.Link><Navbar.Link href="#" className="text-lg">
+              Tutorial
+            </Navbar.Link><Navbar.Link href="#" className="text-lg">
+              Support
+            </Navbar.Link>
+        </>
+        )}
         {!isLoggedIn && (
           <Navbar.Link href="/login" className="text-lg">
             Login
