@@ -6,5 +6,5 @@ urlpatterns = [
     path("login", LoginView.as_view(), name="login"),
     path("forgotPassword", ForgotPasswordView.as_view(), name="forgotPassword"),
     path("resetPassword", ResetPasswordView.as_view(), name="resetPassword"),
-    path("dashboard",DashboardView.as_view(), name="Dashboard")
+    path("dashboard",DashboardView.as_view(), name="dashboard")
 ]

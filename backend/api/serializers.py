@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Token, Portfolio, PortfolioItem
+from .models import User, Portfolio, PortfolioItem
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -7,12 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["name", "email", "password", "country", "phone"]
 
-
-class TokenSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Token
-        fields = ["token", "created_at", "expires_at", "user_id", "is_used"]
-        
+ 
 class PortfolioItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioItem

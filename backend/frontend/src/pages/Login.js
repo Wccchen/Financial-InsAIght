@@ -1,31 +1,57 @@
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const URL = process.env.REACT_APP_BACKEND_URL + "/api/login";
 
-const Login = (props) => {
-  let navigate = useNavigate();
-  const { isLoggedIn, setIsLoggedIn, setName, setEmail } = props;
+const Login = ({ isLoggedIn, setIsLoggedIn, setName, setEmail }) => {
+  const navigate = useNavigate();
+
+  const [email, setEmailState] = useState("");
+  const [password, setPasswordState] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
-    if (isLoggedIn) navigate("profile");
-  });
+    if (isLoggedIn) navigate("dashboard");
+  }, [isLoggedIn, navigate]);
 
-  const handleLogin = async (ev) => {
-    ev.preventDefault();
-    const email = ev.target.email.value;
-    const password = ev.target.password.value;
-    const formData = { email: email, password: password };
-    const res = await axios.post(URL, formData);
-    const data = res.data;
-    if (data.success === true) {
-      toast.success(data.message);
-      setIsLoggedIn(true);
-      setEmail(email);
-      navigate("/profile");
-    } else toast.error(data.message);
+  const handleLogin = async (event) => {
+    event.preventDefault();
+  
+    try {
+      const response = await axios.post(URL, { email, password });
+      console.log('Login response:', response.data);
+      if (response.data.success) {
+        
+        const { name, email } = response.data.user;
+
+       
+        if (rememberMe) {
+          localStorage.setItem('access', response.data.access);
+          localStorage.setItem('refresh', response.data.refresh);
+          localStorage.setItem('name', name);
+          localStorage.setItem('email', email);
+        } else {
+          sessionStorage.setItem('access', response.data.access);
+          sessionStorage.setItem('refresh', response.data.refresh);
+          sessionStorage.setItem('name', name);
+          sessionStorage.setItem('email', email);
+        }
+
+        setIsLoggedIn(true);
+        setName(name);
+        setEmail(email);
+
+        toast.success("Logged in successfully!");
+        navigate("/dashboard");
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      toast.error("An error occurred during login. Please try again.");
+    }
   };
 
   return (
@@ -47,8 +73,10 @@ const Login = (props) => {
             <input
               id="email"
               type="email"
+              value={email}
+              onChange={(e) => setEmailState(e.target.value)}
               placeholder="Your Email"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
               required
             />
           </div>
@@ -72,8 +100,10 @@ const Login = (props) => {
             <input
               id="password"
               type="password"
+              value={password}
+              onChange={(e) => setPasswordState(e.target.value)}
               placeholder="Your Password"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
               required
             />
           </div>
@@ -81,7 +111,9 @@ const Login = (props) => {
             <input
               type="checkbox"
               id="remember"
-              class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             <label htmlFor="remember" className="text-sm font-medium">
               Remember me
@@ -90,7 +122,7 @@ const Login = (props) => {
           
           <button
             type="submit"
-            class="focus:outline-none text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-purple-500 dark:hover:bg-purple-600 dark:focus:ring-purple-800"
+            className="focus:outline-none text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-purple-500 dark:hover:bg-purple-600 dark:focus:ring-purple-800"
           >
             Submit
           </button>

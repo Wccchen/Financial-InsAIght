@@ -1,16 +1,17 @@
-from django.shortcuts import render
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import User, Token, Portfolio
-from .serializers import UserSerializer, TokenSerializer, PortfolioSerializer
+from rest_framework.permissions import IsAuthenticated
+from .models import User, Portfolio
+from .serializers import UserSerializer, PortfolioSerializer
 from django.conf import settings
-from datetime import datetime, timedelta
-import hashlib
-import uuid
-from django.utils import timezone
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.utils.encoding import force_str
 
 SALT = "8b4f6b2cc1868d75ef79e5cfb8779c11b6a374bf0fce05b485581bf4e1e25b96c8c2855015de8449"
 URL = "http://localhost:3000"
@@ -36,101 +37,6 @@ def mail_template(content, button_url, button_text):
             </html>"""
 
 
-# Create your views here.
-class ResetPasswordView(APIView):
-    def post(self, request, format=None):
-        user_id = request.data["id"]
-        token = request.data["token"]
-        password = request.data["password"]
-
-        token_obj = Token.objects.filter(
-            user_id=user_id).order_by("-created_at")[0]
-        if token_obj.expires_at < timezone.now():
-            return Response(
-                {
-                    "success": False,
-                    "message": "Password Reset Link has expired!",
-                },
-                status=status.HTTP_200_OK,
-            )
-        elif token_obj is None or token != token_obj.token or token_obj.is_used:
-            return Response(
-                {
-                    "success": False,
-                    "message": "Reset Password link is invalid!",
-                },
-                status=status.HTTP_200_OK,
-            )
-        else:
-            token_obj.is_used = True
-            hashed_password = make_password(password=password, salt=SALT)
-            ret_code = User.objects.filter(
-                id=user_id).update(password=hashed_password)
-            if ret_code:
-                token_obj.save()
-                return Response(
-                    {
-                        "success": True,
-                        "message": "Your password reset was successfully!",
-                    },
-                    status=status.HTTP_200_OK,
-                )
-
-
-class ForgotPasswordView(APIView):
-    def post(self, request, format=None):
-        email = request.data["email"]
-        user = User.objects.get(email=email)
-        created_at = timezone.now()
-        expires_at = timezone.now() + timezone.timedelta(1)
-        salt = uuid.uuid4().hex
-        token = hashlib.sha512(
-            (str(user.id) + user.password + created_at.isoformat() + salt).encode(
-                "utf-8"
-            )
-        ).hexdigest()
-        token_obj = {
-            "token": token,
-            "created_at": created_at,
-            "expires_at": expires_at,
-            "user_id": user.id,
-        }
-        serializer = TokenSerializer(data=token_obj)
-        if serializer.is_valid():
-            serializer.save()
-            subject = "Forgot Password Link"
-            content = mail_template(
-                "We have received a request to reset your password. Please reset your password using the link below.",
-                f"{URL}/resetPassword?id={user.id}&token={token}",
-                "Reset Password",
-            )
-            send_mail(
-                subject=subject,
-                message=content,
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[email],
-                html_message=content,
-            )
-            return Response(
-                {
-                    "success": True,
-                    "message": "A password reset link has been sent to your email.",
-                },
-                status=status.HTTP_200_OK,
-            )
-        else:
-            error_msg = ""
-            for key in serializer.errors:
-                error_msg += serializer.errors[key][0]
-            return Response(
-                {
-                    "success": False,
-                    "message": error_msg,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-
 class RegistrationView(APIView):
     def post(self, request, format=None):
         request.data["password"] = make_password(
@@ -152,29 +58,109 @@ class RegistrationView(APIView):
                 status=status.HTTP_200_OK,
             )
 
+class ForgotPasswordView(APIView):
+    def post(self, request, format=None):
+        email = request.data.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {"success": False, "message": "User with provided email does not exist."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        # Generate password reset token
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        # Build password reset URL
+        reset_url = f"{settings.FRONTEND_URL}/resetPassword?uid={uid}&token={token}"
+
+        # Send email
+        send_mail(
+            "Password Reset Request",
+            f"Click the link below to reset your password:\n{reset_url}",
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+
+        return Response(
+            {"success": True, "message": "Password reset link has been sent to your email."},
+            status=status.HTTP_200_OK
+        )
+
+class ResetPasswordView(APIView):
+    def post(self, request, format=None):
+        uidb64 = request.data.get('uid')
+        token = request.data.get('token')
+        new_password = request.data.get('password')
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            user.password = make_password(new_password)
+            user.save()
+            return Response({"success": True, "message": "Password has been reset successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"success": False, "message": "Invalid token or user ID."}, status=status.HTTP_400_BAD_REQUEST)
+        
 class LoginView(APIView):
     def post(self, request, format=None):
-        email = request.data["email"]
-        password = request.data["password"]
-        hashed_password = make_password(password=password, salt=SALT)
-        user = User.objects.get(email=email)
-        if user is None or user.password != hashed_password:
+        email = request.data.get("email")
+        password = request.data.get("password")
+        
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
             return Response(
-                {
-                    "success": False,
-                    "message": "Invalid Login Credentials!",
+                {"success": False, "message": "Invalid login credentials!"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if not user.check_password(password):
+            return Response(
+                {"success": False, "message": "Invalid login credentials!"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "success": True,
+                "message": "You are now logged in!",
+                "user": {
+                    "name": user.name,
+                    "email": user.email,
                 },
-                status=status.HTTP_200_OK,
-            )
-        else:
-            return Response(
-                {"success": True, "message": "You are now logged in!"},
-                status=status.HTTP_200_OK,
-            )
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+        
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 class DashboardView(APIView):
-    def post(self, request, format=None):
-        user = request.user
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+    
+        jwt_authenticator = JWTAuthentication()
+        user, token = jwt_authenticator.authenticate(request)
+        
+        if not user:
+            return Response(
+                {"detail": "User not found", "code": "user_not_found"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
         portfolios = Portfolio.objects.filter(user=user)
         portfolio_data = PortfolioSerializer(portfolios, many=True).data
 
@@ -191,3 +177,5 @@ class DashboardView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+

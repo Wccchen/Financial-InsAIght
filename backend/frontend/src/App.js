@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import "./App.css";
 import AppNavBar from "./components/AppNavBar";
 import Login from "./pages/Login";
@@ -9,12 +9,24 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
-import { useState } from "react";
+import Dashboard from "./pages/DashBoard";
+import { useState, useEffect } from "react";
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem('access') || sessionStorage.getItem('access');
+    if (token) {
+        setIsLoggedIn(true);
+        setName(localStorage.getItem('name') || sessionStorage.getItem('name'));
+        setEmail(localStorage.getItem('email') || sessionStorage.getItem('email'));
+    } else {
+        setIsLoggedIn(false);
+    }
+}, []);
 
   return (
     <div className="md:h-screen bg-purple-100">
@@ -33,33 +45,17 @@ const App = () => {
             <Route
               path="/"
               exact
-              element={
-                <Home isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-              }
+              element={<Home isLoggedIn={isLoggedIn} />}
             />
             <Route
               path="register"
               exact
-              element={
-                <Register
-                  isLoggedIn={isLoggedIn}
-                  setIsLoggedIn={setIsLoggedIn}
-                  setName={setName}
-                  setEmail={setEmail}
-                />
-              }
+              element={<Register setIsLoggedIn={setIsLoggedIn} setName={setName} setEmail={setEmail} />}
             />
             <Route
               path="login"
               exact
-              element={
-                <Login
-                  isLoggedIn={isLoggedIn}
-                  setIsLoggedIn={setIsLoggedIn}
-                  setName={setName}
-                  setEmail={setEmail}
-                />
-              }
+              element={<Login setIsLoggedIn={setIsLoggedIn} setName={setName} setEmail={setEmail} />}
             />
             <Route
               path="forgotPassword"
@@ -74,7 +70,22 @@ const App = () => {
               path="profile"
               exact
               element={
-                <Profile isLoggedIn={isLoggedIn} name={name} email={email} />
+                isLoggedIn ? (
+                  <Profile isLoggedIn={isLoggedIn} name={name} email={email} />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route
+              path="dashboard"
+              exact
+              element={
+                isLoggedIn ? (
+                  <Dashboard isLoggedIn={isLoggedIn} name={name} email={email} />
+                ) : (
+                  <Navigate to="/login" />
+                )
               }
             />
           </Routes>

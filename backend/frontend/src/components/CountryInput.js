@@ -1,10 +1,10 @@
 const countries = [
     "Select Country",
-    "India",
     "United States",
     "Japan",
     "Australia",
     "Canada",
+    "Taiwan"
   ];
   
   const CountryInput = () => {

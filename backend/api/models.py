@@ -1,26 +1,47 @@
 from django.db import models
-
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.hashers import check_password, make_password
 # Create your models here.
 
-class Token(models.Model):
-    id = models.AutoField(primary_key=True)
-    token = models.CharField(max_length=255)
-    created_at = models.DateTimeField()
-    expires_at = models.DateTimeField()
-    user_id = models.IntegerField()
-    is_used = models.BooleanField(default=False)
+class UserManager(BaseUserManager):
+    def create_user(self, email, name, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, name=name, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
+    def create_superuser(self, email, name, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
 
-class User(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
+        return self.create_user(email, name, password, **extra_fields)
+
+class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
     phone = models.CharField(max_length=10, null=True)
     country = models.CharField(max_length=63)
+    
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
-    def __str__(self) -> str:
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
+
+    objects = UserManager()
+
+    def __str__(self):
         return self.name
+    
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+        self.save()
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
     
 class Portfolio(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE) 

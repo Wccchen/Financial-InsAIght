@@ -1,19 +1,23 @@
 import { useEffect } from "react";
 import UserIcon from "../images/user.png";
-import { redirect } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const Profile = (props) => {
-  const { isLoggedIn, name, email } = props;
+const Profile = ({ isLoggedIn, name, email }) => {
+  const navigate = useNavigate();
+
   useEffect(() => {
-    if (isLoggedIn === false) redirect("/");
-  }, []);
+    const token = localStorage.getItem('access');
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   return (
     <div className="flex items-center justify-center mt-5">
       <div className="w-full max-w-lg p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
         <div className="flex flex-col items-center pb-10">
           <img
-            alt="Bonnie image"
+            alt="User avatar"
             height="96"
             src={UserIcon}
             width="96"
