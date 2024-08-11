@@ -4,8 +4,8 @@ from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import User, Token
-from .serializers import UserSerializer, TokenSerializer
+from .models import User, Token, Portfolio
+from .serializers import UserSerializer, TokenSerializer, PortfolioSerializer
 from django.conf import settings
 from datetime import datetime, timedelta
 import hashlib
@@ -172,3 +172,22 @@ class LoginView(APIView):
                 {"success": True, "message": "You are now logged in!"},
                 status=status.HTTP_200_OK,
             )
+class DashboardView(APIView):
+    def post(self, request, format=None):
+        user = request.user
+        portfolios = Portfolio.objects.filter(user=user)
+        portfolio_data = PortfolioSerializer(portfolios, many=True).data
+
+        return Response(
+            {
+                "success": True,
+                "message": "User Dashboard Data",
+                "user": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "portfolios": portfolio_data,
+                }
+            },
+            status=status.HTTP_200_OK,
+        )

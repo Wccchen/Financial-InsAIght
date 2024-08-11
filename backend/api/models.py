@@ -29,7 +29,7 @@ class Portfolio(models.Model):
     updated_at = models.DateTimeField(auto_now=True) 
 
     def __str__(self):
-        return f"{self.name} - {self.user.username}"
+        return f"{self.name} - {self.user.name}"
 
 class PortfolioItem(models.Model):
     portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='items') 
