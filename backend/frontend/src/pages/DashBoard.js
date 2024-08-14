@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; 
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const URL = process.env.REACT_APP_BACKEND_URL + "/api/dashboard";
+
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -40,6 +43,10 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [URL]);
 
+  const handleAddPortfolio = () => {
+    navigate('/addportfolio'); // Navigate to AddPortfolio page
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
@@ -56,6 +63,9 @@ const Dashboard = () => {
       ) : (
         <p>You have no portfolios.</p>
       )}
+      <button onClick={handleAddPortfolio} className="add-portfolio-button">
+        Add Portfolio
+      </button>
     </div>
   );
 };

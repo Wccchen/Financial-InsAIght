@@ -11,7 +11,9 @@ class UserSerializer(serializers.ModelSerializer):
 class PortfolioItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioItem
-        fields = '__all__'
+        fields = ['asset_name', 'asset_type', 'quantity', 'purchase_price', 'current_value', 'purchase_date']
+
+
       
 class PortfolioSerializer(serializers.ModelSerializer):
         items = PortfolioItemSerializer(many=True, read_only=True)

@@ -10,6 +10,8 @@ import "react-toastify/dist/ReactToastify.css";
 import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/DashBoard";
+import Analyse from "./pages/Analyse";
+import AddPortfolio from "./pages/AddPortfolio";
 import { useState, useEffect } from "react";
 
 const App = () => {
@@ -88,7 +90,31 @@ const App = () => {
                 )
               }
             />
+            <Route
+              path="analyse"
+              exact
+              element={
+                isLoggedIn ? (
+                  <Analyse isLoggedIn={isLoggedIn} name={name} email={email} />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+             <Route
+              path="addportfolio"
+              exact
+              element={
+                isLoggedIn ? (
+                  <AddPortfolio isLoggedIn={isLoggedIn} name={name} email={email} />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
           </Routes>
+          
+          
         </div>
       </BrowserRouter>
     </div>

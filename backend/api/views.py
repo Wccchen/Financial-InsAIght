@@ -12,6 +12,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.utils.encoding import force_str
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 SALT = "8b4f6b2cc1868d75ef79e5cfb8779c11b6a374bf0fce05b485581bf4e1e25b96c8c2855015de8449"
 URL = "http://localhost:3000"
@@ -177,5 +179,58 @@ class DashboardView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+        
+class AddPortfolioView(APIView):
+    def post(self, request, format=None):
+        # Fetch the portfolio ID from the request data
+        portfolio_id = request.data.get('portfolio_id')
+
+        if not portfolio_id:
+            return Response(
+                {"success": False, "message": "Portfolio ID is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            return Response(
+                {"success": False, "message": "Portfolio does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = PortfolioItemSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(portfolio=portfolio)
+            return Response(
+                {"success": True, "message": "Asset added successfully!"},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                {"success": False, "message": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
+
+
+class AnalysePortfolioView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+    
+        text = request.data.get('text')
+
+        if not text:
+            return Response({"error": "No text provided for analysis."}, status=400)
+
+        tokenizer = AutoTokenizer.from_pretrained("mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis")
+        model = AutoModelForSequenceClassification.from_pretrained("mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis")
+
+        nlp = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
+
+        results = nlp([text])
+        print(results)
+        simplified_results = [{"label":result["label"], "score":result["score"]} for result in results]
+        return Response({"analysis": simplified_results[0]}, status=200)
