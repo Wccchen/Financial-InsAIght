@@ -11,7 +11,8 @@ import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/DashBoard";
 import Analyse from "./pages/Analyse";
-import AddPortfolio from "./pages/AddPortfolio";
+import AddAsset from "./pages/AddAsset";
+import CreatePortfolio from "./pages/CreatePortfolio";
 import { useState, useEffect } from "react";
 
 const App = () => {
@@ -102,11 +103,22 @@ const App = () => {
               }
             />
              <Route
-              path="addportfolio"
+              path="addasset"
               exact
               element={
                 isLoggedIn ? (
-                  <AddPortfolio isLoggedIn={isLoggedIn} name={name} email={email} />
+                  <AddAsset isLoggedIn={isLoggedIn} name={name} email={email} />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route
+              path="createportfolio"
+              exact
+              element={
+                isLoggedIn ? (
+                  <CreatePortfolio isLoggedIn={isLoggedIn} name={name} email={email} />
                 ) : (
                   <Navigate to="/login" />
                 )

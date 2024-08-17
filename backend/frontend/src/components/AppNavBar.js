@@ -31,7 +31,7 @@ const AppNavBar = (props) => {
               alt="Finance Insight Logo"
             />
             <span className="self-center text-3xl font-semibold dark:text-white">
-              Finance Insight
+              Finance InsAIght
             </span>
           </NavLink>
         </Navbar.Brand>

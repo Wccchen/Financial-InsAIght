@@ -180,7 +180,7 @@ class DashboardView(APIView):
             status=status.HTTP_200_OK,
         )
         
-class AddPortfolioView(APIView):
+class AddAssetView(APIView):
     def post(self, request, format=None):
         # Fetch the portfolio ID from the request data
         portfolio_id = request.data.get('portfolio_id')
@@ -211,6 +211,27 @@ class AddPortfolioView(APIView):
                 {"success": False, "message": serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+class CreatePortfolioView(APIView):
+    def post(self, request, format=None):
+        user = request.user
+        
+        portfolio_name = request.data.get('portfolio_name')
+
+        if not portfolio_name:
+            return Response(
+                {"success": False, "message": "Portfolio name is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        portfolio = Portfolio(user=user, name=portfolio_name)
+        portfolio.save()
+
+        return Response(
+            {"success": True, "message": "Portfolio created successfully!"},
+            status=status.HTTP_201_CREATED,
+        )
+
 
 
 

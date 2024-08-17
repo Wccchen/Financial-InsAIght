@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from "react-toastify";
 
-const AddPortfolio = () => {
+const AddAsset = () => {
   const [portfolios, setPortfolios] = useState([]);
   const [loadingPortfolios, setLoadingPortfolios] = useState(true);
   const [error, setError] = useState(null);
 
-  const URL = process.env.REACT_APP_BACKEND_URL + "/api/addportfolio";
+  const URL = process.env.REACT_APP_BACKEND_URL + "/api/addasset";
   const portfoliosURL = process.env.REACT_APP_BACKEND_URL + "/api/dashboard"; // URL to fetch portfolios
 
   useEffect(() => {
@@ -261,4 +261,4 @@ const AddPortfolio = () => {
   );
 };
 
-export default AddPortfolio;
+export default AddAsset;
