@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .models import User, Portfolio
-from .serializers import UserSerializer, PortfolioSerializer
+from .serializers import UserSerializer, PortfolioSerializer, PortfolioItemSerializer
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import default_token_generator
