@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Portfolio, PortfolioItem
+from .models import User, Portfolio, PortfolioItem, TextAnalysis
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -16,6 +16,12 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
 
       
 class PortfolioSerializer(serializers.ModelSerializer):
+        items = PortfolioItemSerializer(many=True, read_only=True)
+        class Meta:
+            model = Portfolio
+            fields = '__all__'
+
+class TextAnalysisSerializer(serializers.ModelSerializer):
         items = PortfolioItemSerializer(many=True, read_only=True)
         class Meta:
             model = Portfolio

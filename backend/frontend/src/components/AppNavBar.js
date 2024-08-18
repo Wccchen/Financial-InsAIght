@@ -44,7 +44,7 @@ const AppNavBar = (props) => {
           <Navbar.Link as={NavLink} to="/profile" className="text-lg">
             Profile
           </Navbar.Link>
-          <Navbar.Link href="#" className="text-lg">
+          <Navbar.Link as={NavLink} to="/analyse" className="text-lg">
             Analyse
           </Navbar.Link>
           <Navbar.Link href="#" className="text-lg">

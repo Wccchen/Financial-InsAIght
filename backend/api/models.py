@@ -63,3 +63,12 @@ class PortfolioItem(models.Model):
 
     def __str__(self):
         return f"{self.asset_name} ({self.asset_type}) - {self.portfolio.name}"
+    
+class TextAnalysis(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    input_text = models.TextField()
+    analysis_result = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Analysis for {self.user.name} on {self.created_at}"
