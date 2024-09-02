@@ -145,9 +145,7 @@ const Register = (props) => {
                 name="phone"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
                 maxLength={10}
-                pattern="^[79][0-9]{9}"
                 placeholder="1234567890"
-                aria-errormessage="Phone number must start with 7 or 9"
               />
             </div>
 

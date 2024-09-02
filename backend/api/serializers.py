@@ -22,8 +22,7 @@ class PortfolioSerializer(serializers.ModelSerializer):
             fields = '__all__'
 
 class TextAnalysisSerializer(serializers.ModelSerializer):
-        items = PortfolioItemSerializer(many=True, read_only=True)
         class Meta:
-            model = Portfolio
+            model = TextAnalysis
             fields = '__all__'
             
