@@ -15,7 +15,6 @@ from django.utils.encoding import force_str
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-SALT = "8b4f6b2cc1868d75ef79e5cfb8779c11b6a374bf0fce05b485581bf4e1e25b96c8c2855015de8449"
 URL = "http://localhost:3000"
 
 
@@ -42,7 +41,7 @@ def mail_template(content, button_url, button_text):
 class RegistrationView(APIView):
     def post(self, request, format=None):
         request.data["password"] = make_password(
-            password=request.data["password"], salt=SALT
+            password=request.data["password"]
         )
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
