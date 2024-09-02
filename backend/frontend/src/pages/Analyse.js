@@ -1,6 +1,40 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+
+const REFRESH_URL = process.env.REACT_APP_BACKEND_URL + "/api/refresh-token";
+const refreshToken = async () => {
+  try {
+    const refreshToken = localStorage.getItem('refresh') || sessionStorage.getItem('refresh');
+    if (!refreshToken) {
+      throw new Error("No refresh token available.");
+    }
+
+    const response = await axios.post(REFRESH_URL, { refresh: refreshToken });
+
+    const newAccessToken = response.data.access;
+    const newRefreshToken = response.data.refresh;
+
+    if (localStorage.getItem('access')) {
+      localStorage.setItem('access', newAccessToken);
+      localStorage.setItem('refresh', newRefreshToken);
+    } else {
+      sessionStorage.setItem('access', newAccessToken);
+      sessionStorage.setItem('refresh', newRefreshToken);
+    }
+
+    return newAccessToken;
+  } catch (err) 
+  {
+    console.error('Failed to refresh token:', err);
+  //  setError('Failed to refresh token. Please login again.');
+    throw err;
+  }
+};
+
+
+//const response1 = await handleLogin();
+
 const Analyse = () => {
   const [inputText, setInputText] = useState('');
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -20,7 +54,10 @@ const Analyse = () => {
     setError(null);
     setAnalysisResult(null);
 
-    const token = localStorage.getItem('access') || sessionStorage.getItem('access');
+    //handleLogin();
+
+   // const token = localStorage.getItem('access') || sessionStorage.getItem('access');
+   let token = localStorage.getItem('access') || sessionStorage.getItem('access');
     if (!token) {
       setError('User is not authenticated.');
       setLoading(false);
@@ -28,6 +65,9 @@ const Analyse = () => {
     }
 
     try {
+     
+      //const response1 = await axios.post('http://localhost:8000/api/login', { 'waynexb3162@gmail.com', 'Wayne509@@@'});
+     
       const response = await axios.post(URL, { text: inputText }, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -42,9 +82,38 @@ const Analyse = () => {
         setError('No results found.');
       }
     } 
-    catch (err) {
+    catch (err)
+     {
+     // setError('Failed to perform analysis.');
+    //  console.error('Error:', err);
+    if (err.response && err.response.status >= 401) 
+      { 
+        try {
+          token = await refreshToken(); 
+          const response = await axios.post(URL, { text: inputText }, 
+            {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (response.data && response.data.analysis) {
+          const results = response.data.analysis;
+          console.log('Results:', results);
+          setAnalysisResult(results);
+        } else {
+          setError('No results found.');
+        }
+      } catch (refreshError) {
+        setError('Failed to refresh token and perform analysis.');
+        console.error('Error during token refresh:', refreshError);
+      }
+    } else {
       setError('Failed to perform analysis.');
       console.error('Error:', err);
+    }
+
+      
     } 
     finally {
       setLoading(false);

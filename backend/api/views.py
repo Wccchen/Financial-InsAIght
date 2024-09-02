@@ -7,13 +7,16 @@ from rest_framework.permissions import IsAuthenticated
 from .models import User, Portfolio
 from .serializers import UserSerializer, PortfolioSerializer, PortfolioItemSerializer
 from django.conf import settings
+from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.utils.encoding import force_str
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
 
 URL = "http://localhost:3000"
 
@@ -41,7 +44,7 @@ def mail_template(content, button_url, button_text):
 class RegistrationView(APIView):
     def post(self, request, format=None):
         request.data["password"] = make_password(
-            password=request.data["password"]
+            password=request.data["password"],
         )
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -254,3 +257,42 @@ class AnalysePortfolioView(APIView):
         print(results)
         simplified_results = [{"label":result["label"], "score":result["score"]} for result in results]
         return Response({"analysis": simplified_results[0]}, status=200)
+
+
+
+class RefreshTokenView(APIView):
+    """
+    This view allows users to refresh their access token using a refresh token.
+    The view returns both a new access token and an optional new refresh token.
+    """
+    permission_classes = [AllowAny]  # This view should be accessible to anyone with a valid refresh token.
+
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.data.get('refresh')
+        
+        if not refresh_token:
+            return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Attempt to create a RefreshToken object using the provided refresh token
+            token = RefreshToken(refresh_token)
+            
+            # Generate a new access token
+            new_access_token = token.access_token
+
+            # Optionally rotate the refresh token and create a new one
+            new_refresh_token = str(token)  # This will invalidate the old refresh token
+            
+            # Return the new tokens to the client
+            return Response({
+                "access": str(new_access_token),
+                "refresh": new_refresh_token,
+            }, status=status.HTTP_200_OK)
+        
+        except TokenError as e:
+            # Handle errors during token validation or creation
+            return Response({"error": "Token error: " + str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            # Handle any other unexpected errors
+            return Response({"error": "An unexpected error occurred: " + str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

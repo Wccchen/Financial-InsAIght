@@ -2,6 +2,38 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; 
 
+const REFRESH_URL = process.env.REACT_APP_BACKEND_URL + "/api/refresh-token"; 
+
+const refreshToken = async () => {
+  try {
+    const refreshToken = localStorage.getItem('refresh') || sessionStorage.getItem('refresh');
+    if (!refreshToken) {
+      throw new Error("No refresh token available.");
+    }
+
+    const response = await axios.post(REFRESH_URL, { refresh: refreshToken });
+
+    const newAccessToken = response.data.access;
+    const newRefreshToken = response.data.refresh;
+
+    if (localStorage.getItem('access')) {
+      localStorage.setItem('access', newAccessToken);
+      localStorage.setItem('refresh', newRefreshToken);
+    } else {
+      sessionStorage.setItem('access', newAccessToken);
+      sessionStorage.setItem('refresh', newRefreshToken);
+    }
+
+    return newAccessToken;
+  } catch (err) {
+    console.error('Failed to refresh token:', err);
+  //  setError('Failed to refresh token. Please login again.');
+    throw err;
+  }
+};
+
+
+
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,7 +44,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const token = localStorage.getItem('access') || sessionStorage.getItem('access');
+      let token = localStorage.getItem('access') || sessionStorage.getItem('access');
   
       if (!token) {
         setError('User is not authenticated.');
@@ -29,13 +61,51 @@ const Dashboard = () => {
 
         if (response.status === 200) {
           setDashboardData(response.data);
-        } else {
+        } else 
+        {
           setError('Failed to fetch dashboard data.');
         }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setError('Failed to fetch dashboard data.');
-      } finally {
+      } 
+      catch (error)
+       {
+        if (error.response && error.response.status >= 401) 
+          { 
+          try 
+          {
+            token = await refreshToken(); 
+            const response = await axios.get(URL, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+           
+            });
+    
+           // if (response.data && response.data.Dashboard) {
+              if (response.status === 200) {
+                setDashboardData(response.data);
+              } else {
+                setError('Failed to fetch dashboard data.');
+              }
+          } 
+
+          catch (refreshError) 
+          {
+            setError('Failed to refresh token and fetch dashboard data.');
+            console.error('Error during token refresh:', refreshError);
+          }
+        } else {
+          setError('Failed to perform analysis.');
+          console.error('Error:', error);
+        }       
+        
+        
+        
+        //console.error('Error fetching dashboard data:', error);
+        //setError('Failed to fetch dashboard data.');
+      }
+      
+      
+      finally {
         setLoading(false);
       }
     };
